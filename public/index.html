@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Živé Zprávy ze Školství</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: #1c1e21; }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { background: #0d6efd; color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 12px rgba(13,110,253,0.2); }
+        h1 { margin: 0; font-size: 1.8rem; }
+        .status { font-size: 0.9rem; margin-top: 8px; opacity: 0.9; }
+        .news-card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.2s; }
+        .news-card:hover { transform: translateY(-2px); }
+        .meta { font-size: 0.8rem; color: #65676b; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; }
+        .badge { background: #e7f3ff; color: #1877f2; padding: 4px 8px; border-radius: 6px; font-weight: bold; }
+        .news-title { margin: 0 0 8px 0; font-size: 1.2rem; }
+        .news-title a { color: #050505; text-decoration: none; }
+        .news-title a:hover { color: #0d6efd; text-decoration: underline; }
+        p { margin: 0; color: #4b4f56; font-size: 0.95rem; line-height: 1.4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Živé Zprávy ze Školství</h1>
+            <div class="status" id="status">Prohledávám internet...</div>
+        </header>
+
+        <div id="news-container"></div>
+    </div>
+
+    <script>
+        async function updatePage() {
+            try {
+                const response = await fetch('/api/news');
+                const data = await response.json();
+
+                document.getElementById('status').innerText = 
+                    `Poslední automatická kontrola: ${data.updatedAt} | Nalezeno ${data.count} aktuálních článků`;
+
+                const html = data.articles.map(item => `
+                    <div class="news-card">
+                        <div class="meta">
+                            <span class="badge">${item.source}</span>
+                            <span>${new Date(item.pubDate).toLocaleString('cs-CZ')}</span>
+                        </div>
+                        <h2 class="news-title">
+                            <a href="${item.link}" target="_blank">${item.title}</a>
+                        </h2>
+                        <p>${item.snippet}</p>
+                    </div>
+                `).join('');
+
+                document.getElementById('news-container').innerHTML = html;
+            } catch (err) {
+                console.error('Chyba načítání dat:', err);
+            }
+        }
+
+        // První načtení
+        updatePage();
+
+        // Automatické načítání novinek na stránce každých 30 sekund
+        setInterval(updatePage, 30000);
+    </script>
+</body>
+</html>
